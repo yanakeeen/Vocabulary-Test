@@ -1,0 +1,7 @@
+__pycache__/
+
+# 単語データ
+data/*.json
+
+# 生成したテスト
+output/*.pdf
