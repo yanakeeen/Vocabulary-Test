@@ -12,6 +12,7 @@
 
 ## 技術スタック
 - Python 3.8.10
+- requests/BeautifulSoup4 (Scraping)
 
 ## 開発ロードマップ
 1. 単語の取得とデータ処理の実装
