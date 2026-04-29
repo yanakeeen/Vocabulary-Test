@@ -22,7 +22,8 @@ def scrape_words(url):
 def parse_html(html):
     soup = BeautifulSoup(html, 'html.parser')  # BeautifulSoupを使用してHTMLを解析
     rows = soup.find_all('tr')  # テーブルの行をすべて取得
-    i=0
+    data = []  # データを格納するリスト
+
     for row in rows:
         cells = row.find_all('td')  # 行のセルをすべて取得
 
@@ -30,11 +31,13 @@ def parse_html(html):
             index = cells[1].get_text(strip=True)  # インデックスを取得
             word = cells[2].get_text(strip=True)  # 単語を取得
             meaning = cells[3].get_text(strip=True)  # 意味を取得
-            if i<10:
-                print(f"インデックス: {index}, 単語: {word}, 意味: {meaning}")  # インデックス、単語、意味を表示
-            i += 1
-    # データ処理ロジックをここに追加
-    return soup
+            data.append({
+                'index': index,
+                'word': word,
+                'meaning': meaning
+            })  # データをリストに追加
+
+    return data
 
 if __name__ == "__main__":
     target_url = "https://ukaru-eigo.com/target-1900-word-list/"  # スクレイピングしたいURLを入力
@@ -45,12 +48,15 @@ if __name__ == "__main__":
     # 取得したHTMLが存在する場合
     if html:
         data = parse_html(html)
+        print(len(data))  # データの形状を表示
+        for item in data[:10]:  # 最初の10件を表示
+            print(item)
         # os.makedirs('data', exist_ok=True)  # データ保存用のディレクトリを作成
 
         # with open('data/words.json', 'w', encoding='utf-8') as f:
         #     json.dump(data, f, ensure_ascii=False, indent=4)  # データをJSON形式で保存
 
-        print(f"{len(data)}件のデータを保存しました。")
+        # print(f"{len(data)}件のデータを保存しました。")
 
 
 # get_text()によってテキストのみ抜き出し、タグを削除している。strip=Trueは前後の空白を削除するオプション。
