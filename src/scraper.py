@@ -48,15 +48,13 @@ if __name__ == "__main__":
     # 取得したHTMLが存在する場合
     if html:
         data = parse_html(html)
-        print(len(data))  # データの形状を表示
-        for item in data[:10]:  # 最初の10件を表示
-            print(item)
-        # os.makedirs('data', exist_ok=True)  # データ保存用のディレクトリを作成
+        
+        os.makedirs('data', exist_ok=True)  # データ保存用のディレクトリを作成
 
-        # with open('data/words.json', 'w', encoding='utf-8') as f:
-        #     json.dump(data, f, ensure_ascii=False, indent=4)  # データをJSON形式で保存
+        with open('data/words.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)  # データをJSON形式で保存
 
-        # print(f"{len(data)}件のデータを保存しました。")
+        print(f"{len(data)}件のデータを保存しました。")
 
 
 # get_text()によってテキストのみ抜き出し、タグを削除している。strip=Trueは前後の空白を削除するオプション。
