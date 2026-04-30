@@ -10,7 +10,7 @@ from reportlab.lib.units import mm
 # フォントの登録
 pdfmetrics.registerFont(TTFont('NotoSansJP', 'fonts/NotoSansJP-Regular.ttf'))  # フォントファイルのパスを指定
 
-def generate_test_pdf(filename, test_data, mode):
+def generate_test_pdf(filename, test_data, direction='E2J', format='DESC'):
     c = canvas.Canvas(filename, pagesize=A4)
     width, height = A4 # 210mm x 297mm
     fontname = 'NotoSansJP'
@@ -24,6 +24,33 @@ def generate_test_pdf(filename, test_data, mode):
     c.drawString(width - 30 * mm, height - 35 * mm, "得点: ____点")
 
     # 問題の描画
+    y_position = height - 50 * mm
+    x_margin = 25 * mm
+    line_spacing = 16 * mm
+
+    for i, item in enumerate(test_data):
+        # 1ページに15問の想定
+
+        # 問題欄の描画
+        if direction == 'E2J':
+            question_text = f"{item['word']}"
+        else:  # J2E
+            question_text = f"{item['meaning']}"
+        c.setFont(fontname, 11)
+        c.drawString(x_margin, y_position, f"問 {i+1}: {question_text}")
+
+        # 解答欄の描画
+        if format == 'DESC':
+            c.setLineWidth(0.5)
+            c.line(x_margin, y_position - 10 * mm, x_margin + 100 * mm, y_position - 10 * mm)  # 解答欄の線
+        elif format == 'CHOICE':
+            c.setFont(fontname, 9)
+            current_x = x_margin + 10 * mm
+            for choice in item['options']:
+                c.drawString(current_x, y_position - 7 * mm, f"({item['labels'][item['options'].index(choice)]}) {choice}")
+                current_x += 40 * mm  # 選択肢の間隔
+        
+        y_position -= line_spacing # 次の問題の位置に移動
 
     c.save()
 
@@ -60,7 +87,8 @@ def create_four_choice_options_E2J(correct_word, all_words_in_range, num_options
         'word': correct_word['word'],
         'options': options,
         'answer_label': labels[correct_index],
-        'answer_meaning': correct_word['meaning']
+        'answer_meaning': correct_word['meaning'],
+        'labels': labels
     }
 
 # 日→英の4択問題を作成
@@ -85,7 +113,7 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
 if __name__ == "__main__":
     # 動作テスト
     words = load_words('data/words.json')
-    test_data = generate_test_data(words, 1, 100, 10)
+    test_data = generate_test_data(words, 1, 100, 15)
 
     # for word in test_data:
     #     options = create_four_choice_options_J2E(word, words)
@@ -96,4 +124,4 @@ if __name__ == "__main__":
     #     print()
 
     # PDF生成のテスト
-    generate_test_pdf('output/test_header.pdf', test_data, mode='E2J')
+    generate_test_pdf('output/test_header.pdf', test_data, direction='E2J', format='DESC')
