@@ -1,6 +1,19 @@
 import json
 import random
 
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+
+# フォントの登録
+pdfmetrics.registerFont(TTFont('NotoSansJP', 'fonts/NotoSansJP-Regular.ttf'))  # フォントファイルのパスを指定
+
+def create_hello_world_pdf(file_path):
+    c = canvas.Canvas(file_path)
+    c.setFont("NotoSansJP", 20)  # 登録したフォントを使用
+    c.drawString(100, 750, "こんにちは、世界！")  # 日本語テキストを描画
+    c.save()
+
 def load_words(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -17,6 +30,7 @@ def generate_test_data(words, start_index, end_index, num_questions):
     selected_words = random.sample(filtered_words, num_questions)
     return selected_words
 
+# 英→日の4択問題を作成
 def create_four_choice_options_E2J(correct_word, all_words_in_range, num_options=4):
     # 正解以外の選択肢をランダムに選ぶ
     incorrect_pool = [word['meaning'] for word in all_words_in_range if word['word'] != correct_word['word']]
@@ -35,6 +49,7 @@ def create_four_choice_options_E2J(correct_word, all_words_in_range, num_options
         'answer_meaning': correct_word['meaning']
     }
 
+# 日→英の4択問題を作成
 def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options=4):
     # 正解以外の選択肢をランダムに選ぶ
     incorrect_pool = [word['word'] for word in all_words_in_range if word['meaning'] != correct_word['meaning']]
@@ -55,13 +70,16 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
 
 if __name__ == "__main__":
     # 動作テスト
-    words = load_words('data/words.json')
-    test_data = generate_test_data(words, 1, 100, 10)
+    # words = load_words('data/words.json')
+    # test_data = generate_test_data(words, 1, 100, 10)
 
-    for word in test_data:
-        options = create_four_choice_options_J2E(word, words)
-        print(f"問: {options['meaning']}")
-        for label, option in zip(['A', 'B', 'C', 'D'], options['options']):
-            print(f"{label}: {option}")
-        print(f"正解: {options['answer_label']} ({options['answer_word']})")
-        print()
+    # for word in test_data:
+    #     options = create_four_choice_options_J2E(word, words)
+    #     print(f"問: {options['meaning']}")
+    #     for label, option in zip(['A', 'B', 'C', 'D'], options['options']):
+    #         print(f"{label}: {option}")
+    #     print(f"正解: {options['answer_label']} ({options['answer_word']})")
+    #     print()
+
+    # PDF生成のテスト
+    create_hello_world_pdf('output/hello_world.pdf')
