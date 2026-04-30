@@ -4,15 +4,29 @@ import random
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
 
 # フォントの登録
 pdfmetrics.registerFont(TTFont('NotoSansJP', 'fonts/NotoSansJP-Regular.ttf'))  # フォントファイルのパスを指定
 
-def create_hello_world_pdf(file_path):
-    c = canvas.Canvas(file_path)
-    c.setFont("NotoSansJP", 20)  # 登録したフォントを使用
-    c.drawString(100, 750, "こんにちは、世界！")  # 日本語テキストを描画
+def generate_test_pdf(filename, test_data, mode):
+    c = canvas.Canvas(filename, pagesize=A4)
+    width, height = A4 # 210mm x 297mm
+    fontname = 'NotoSansJP'
+
+    # ヘッダー
+    c.setFont(fontname, 16)
+    c.drawCentredString(width / 2, height - 20 * mm, "英単語テスト")
+    c.setFont(fontname, 10)
+    c.drawString(20 * mm, height - 35 * mm, "実施日: ____年__月__日")
+    c.drawString(width - 90 * mm, height - 35 * mm, "氏名: ____________________")
+    c.drawString(width - 30 * mm, height - 35 * mm, "得点: ____点")
+
+    # 問題の描画
+
     c.save()
+
 
 def load_words(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -70,8 +84,8 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
 
 if __name__ == "__main__":
     # 動作テスト
-    # words = load_words('data/words.json')
-    # test_data = generate_test_data(words, 1, 100, 10)
+    words = load_words('data/words.json')
+    test_data = generate_test_data(words, 1, 100, 10)
 
     # for word in test_data:
     #     options = create_four_choice_options_J2E(word, words)
@@ -82,4 +96,4 @@ if __name__ == "__main__":
     #     print()
 
     # PDF生成のテスト
-    create_hello_world_pdf('output/hello_world.pdf')
+    generate_test_pdf('output/test_header.pdf', test_data, mode='E2J')
