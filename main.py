@@ -21,6 +21,13 @@ def main():
         end_index = int(input("出題範囲の終了番号（1-1900）："))
         num_questions = int(input("出題する問題数："))
 
+        if start_index < 1 or end_index > 1900 or start_index >= end_index:
+            print("出題範囲の番号は1から1900の間で、開始番号は終了番号未満でなければなりません。")
+            sys.exit(1)
+        if num_questions < 1 or num_questions > (end_index - start_index + 1):
+            print("出題する問題数は1以上で、出題範囲内の単語数を超えてはいけません。")
+            sys.exit(1)
+
         print()
         print("出題モードの選択")
         print("1: 英→日（記述式）")
@@ -49,9 +56,7 @@ def main():
         print("無効な入力です。数値を入力してください。")
         sys.exit(1)
     
-    if start_index < 1 or end_index > 1900 or start_index >= end_index:
-        print("出題範囲の番号は1から1900の間で、開始番号は終了番号未満でなければなりません。")
-        sys.exit(1)
+    
 
     # テストデータの生成
     print("テストデータを生成しています...")
