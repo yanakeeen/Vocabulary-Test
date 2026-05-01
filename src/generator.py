@@ -41,17 +41,27 @@ def generate_test_pdf(filename, test_data, direction='E2J', format='DESC'):
 
         # 解答欄の描画
         if format == 'DESC':
+            # 記述式の際は、解答欄を線で描画
             c.setLineWidth(0.5)
             c.line(x_margin, y_position - 10 * mm, x_margin + 100 * mm, y_position - 10 * mm)  # 解答欄の線
         elif format == 'CHOICE':
+            # 選択式の際は、選択肢を描画
             c.setFont(fontname, 9)
             current_x = x_margin + 10 * mm
             for choice in item['options']:
                 c.drawString(current_x, y_position - 7 * mm, f"({item['labels'][item['options'].index(choice)]}) {choice}")
                 current_x += 40 * mm  # 選択肢の間隔
-        
-        y_position -= line_spacing # 次の問題の位置に移動
 
+        if (i + 1) % 15 == 0:  # 15問ごとにページを変える
+            c.drawString(width -x_margin, 10 * mm, f"Page {c.getPageNumber()}")  # ページ番号を描画
+            c.showPage()  # 新しいページを開始
+            y_position = height - 50 * mm  # 新しいページの開始位置にリセット
+        else:
+            y_position -= line_spacing # 次の問題の位置に移動
+
+    if (len(test_data) % 15) != 0:  # 最後のページにページ番号を描画
+        c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")
+    
     c.save()
 
 
@@ -113,7 +123,7 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
 if __name__ == "__main__":
     # 動作テスト
     words = load_words('data/words.json')
-    test_data = generate_test_data(words, 1, 100, 15)
+    test_data = generate_test_data(words, 1, 100, 50)
 
     # for word in test_data:
     #     options = create_four_choice_options_J2E(word, words)
