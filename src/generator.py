@@ -72,6 +72,46 @@ def generate_test_pdf(filename, test_data, direction='E2J', format='DESC', start
     
     c.save()
 
+def generate_answer_pdf(filename, test_data, direction='E2J', format='DESC'):
+    c = canvas.Canvas(filename, pagesize=A4)
+    width, height = A4
+    fontname = 'NotoSansJP'
+
+    # ヘッダー
+    c.setFont(fontname, 16)
+    c.drawCentredString(width / 2, height - 20 * mm, "英単語テスト 解答")
+    
+    y_position = height - 50 * mm
+    x_margin = 25 * mm
+    line_spacing = 16 * mm
+
+    for i, item in enumerate(test_data):
+        if direction == 'E2J':
+            question_text = f"{item['word']}"
+            answer_text = f"{item['meaning']}"
+        else:  # J2E
+            question_text = f"{item['meaning']}"
+            answer_text = f"{item['word']}"
+
+        c.setFont(fontname, 11)
+        c.drawString(x_margin, y_position, f"問 {i+1}: {question_text}")
+        c.setFont(fontname, 10)
+        if format == 'DESC':
+            c.drawString(x_margin + 10 * mm, y_position - 7 * mm, f"解答: {answer_text}")
+        elif format == 'CHOICE':
+            c.drawString(x_margin + 10 * mm, y_position - 7 * mm, f"解答: ({item['answer_label']}) {answer_text}")
+
+        if (i + 1) % 15 == 0 and i < len(test_data) - 1:
+            c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")
+            c.showPage()
+            y_position = height - 50 * mm
+        else:
+            y_position -= line_spacing
+
+    c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")
+    
+    c.save()
+
 
 def load_words(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -105,7 +145,7 @@ def create_four_choice_options_E2J(correct_word, all_words_in_range, num_options
         'word': correct_word['word'],
         'options': options,
         'answer_label': labels[correct_index],
-        'answer_meaning': correct_word['meaning'],
+        'meaning': correct_word['meaning'],
         'labels': labels
     }
 
@@ -125,7 +165,7 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
         'meaning': correct_word['meaning'],
         'options': options,
         'answer_label': labels[correct_index],
-        'answer_word': correct_word['word'],
+        'word': correct_word['word'],
         'labels': labels
     }
 
@@ -142,3 +182,6 @@ if __name__ == "__main__":
     # PDF生成のテスト
     generate_test_pdf('output/test_description.pdf', test_data, direction='J2E', format='DESC')
     generate_test_pdf('output/test_choice.pdf', choice_data, direction='J2E', format='CHOICE')
+
+    generate_answer_pdf('output/answer_description.pdf', test_data, direction='J2E', format='DESC')
+    generate_answer_pdf('output/answer_choice.pdf', choice_data, direction='J2E', format='CHOICE')
