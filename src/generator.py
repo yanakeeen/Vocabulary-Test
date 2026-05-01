@@ -10,16 +10,16 @@ from reportlab.lib.units import mm
 # フォントの登録
 pdfmetrics.registerFont(TTFont('NotoSansJP', 'fonts/NotoSansJP-Regular.ttf'))  # フォントファイルのパスを指定
 
-def generate_test_pdf(filename, test_data, direction='E2J', format='DESC'):
+def generate_test_pdf(filename, test_data, direction='E2J', format='DESC', start_index=0, end_index=0):
     c = canvas.Canvas(filename, pagesize=A4)
     width, height = A4 # 210mm x 297mm
     fontname = 'NotoSansJP'
 
     # ヘッダー
     c.setFont(fontname, 16)
-    c.drawCentredString(width / 2, height - 20 * mm, "英単語テスト")
+    c.drawCentredString(width / 2, height - 20 * mm, f"英単語テスト (出題範囲: {start_index} - {end_index})")
     c.setFont(fontname, 10)
-    c.drawString(20 * mm, height - 35 * mm, "実施日: ____年__月__日")
+    c.drawString(20 * mm, height - 35 * mm, "実施日: ________年____月____日")
     c.drawString(width - 90 * mm, height - 35 * mm, "氏名: ____________________")
     c.drawString(width - 30 * mm, height - 35 * mm, "得点: ____点")
 
@@ -44,23 +44,31 @@ def generate_test_pdf(filename, test_data, direction='E2J', format='DESC'):
             # 記述式の際は、解答欄を線で描画
             c.setLineWidth(0.5)
             c.line(x_margin, y_position - 10 * mm, x_margin + 100 * mm, y_position - 10 * mm)  # 解答欄の線
+            if (i + 1) % 15 == 0 and i < len(test_data) - 1:  # 15問ごとにページを変える
+                c.drawString(width -x_margin, 10 * mm, f"Page {c.getPageNumber()}")  # ページ番号を描画
+                c.showPage()  # 新しいページを開始
+                y_position = height - 50 * mm  # 新しいページの開始位置にリセット
+            else:
+                y_position -= line_spacing # 次の問題の位置に移動
+
         elif format == 'CHOICE':
             # 選択式の際は、選択肢を描画
             c.setFont(fontname, 9)
             current_x = x_margin + 10 * mm
             for choice in item['options']:
                 c.drawString(current_x, y_position - 7 * mm, f"({item['labels'][item['options'].index(choice)]}) {choice}")
-                current_x += 40 * mm  # 選択肢の間隔
+                y_position -= line_spacing / 2  # 選択肢の間隔
+            
+            if (i + 1)%6 == 0 and i < len(test_data) - 1:  # 6問ごとにページを変える（選択肢があるため、15問より少ない）
+                c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")  # ページ番号を描画
+                c.showPage()  # 新しいページを開始
+                y_position = height - 50 * mm  # 新しいページの開始位置にリセット
+            else:
+                y_position -= line_spacing / 2  # 次の問題の位置に移動
 
-        if (i + 1) % 15 == 0:  # 15問ごとにページを変える
-            c.drawString(width -x_margin, 10 * mm, f"Page {c.getPageNumber()}")  # ページ番号を描画
-            c.showPage()  # 新しいページを開始
-            y_position = height - 50 * mm  # 新しいページの開始位置にリセット
-        else:
-            y_position -= line_spacing # 次の問題の位置に移動
+        
 
-    if (len(test_data) % 15) != 0:  # 最後のページにページ番号を描画
-        c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")
+    c.drawString(width - x_margin, 10 * mm, f"Page {c.getPageNumber()}")
     
     c.save()
 
@@ -117,21 +125,20 @@ def create_four_choice_options_J2E(correct_word, all_words_in_range, num_options
         'meaning': correct_word['meaning'],
         'options': options,
         'answer_label': labels[correct_index],
-        'answer_word': correct_word['word']
+        'answer_word': correct_word['word'],
+        'labels': labels
     }
 
 if __name__ == "__main__":
     # 動作テスト
     words = load_words('data/words.json')
-    test_data = generate_test_data(words, 1, 100, 50)
+    test_data = generate_test_data(words, 1, 100, 15)
+    choice_data = []
 
-    # for word in test_data:
-    #     options = create_four_choice_options_J2E(word, words)
-    #     print(f"問: {options['meaning']}")
-    #     for label, option in zip(['A', 'B', 'C', 'D'], options['options']):
-    #         print(f"{label}: {option}")
-    #     print(f"正解: {options['answer_label']} ({options['answer_word']})")
-    #     print()
+    for item in test_data:
+        options = create_four_choice_options_J2E(item, test_data)
+        choice_data.append(options)
 
     # PDF生成のテスト
-    generate_test_pdf('output/test_header.pdf', test_data, direction='E2J', format='DESC')
+    generate_test_pdf('output/test_description.pdf', test_data, direction='J2E', format='DESC')
+    generate_test_pdf('output/test_choice.pdf', choice_data, direction='J2E', format='CHOICE')
